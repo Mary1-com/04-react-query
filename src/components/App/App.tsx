@@ -19,7 +19,8 @@ import ReactPaginateModule from "react-paginate";
 // import type { ReactPaginateProps } from "react-paginate";
 
 type ModuleWithDefault<T> = { default: T };
-const ReactPaginate = (ReactPaginateModule as unknown as ModuleWithDefault).default;
+const ReactPaginate = (ReactPaginateModule as unknown as ModuleWithDefault<any>
+  ).default;
 
 export default function App() {
   const [query, setQuery] =
