@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ComponentType } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import toast, { Toaster } from "react-hot-toast";
@@ -14,13 +14,15 @@ import type { Movie } from "../../types/movie";
 
 import css from "./App.module.css";
 
-// import ReactPaginate from "react-paginate";
 import ReactPaginateModule from "react-paginate";
-// import type { ReactPaginateProps } from "react-paginate";
+import type { ReactPaginateProps } from "react-paginate";
 
 type ModuleWithDefault<T> = { default: T };
-const ReactPaginate = (ReactPaginateModule as unknown as ModuleWithDefault<any>
-  ).default;
+const ReactPaginate = (
+  ReactPaginateModule as unknown as ModuleWithDefault<
+    ComponentType<ReactPaginateProps>
+  >
+).default;
 
 export default function App() {
   const [query, setQuery] =
