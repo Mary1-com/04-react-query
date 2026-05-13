@@ -1,5 +1,5 @@
-import { useState, type ComponentType } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect, type ComponentType } from "react";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 
 import toast, { Toaster } from "react-hot-toast";
 
@@ -25,48 +25,37 @@ const ReactPaginate = (
 ).default;
 
 export default function App() {
-  const [query, setQuery] =
-    useState("");
-
-  const [page, setPage] =
-    useState(1);
-
-  const [selectedMovie, setSelectedMovie] =
-    useState<Movie | null>(null);
+  const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
   const {
     data,
     isLoading,
     isError,
+    isFetching,
   } = useQuery({
     queryKey: ["movies", query, page],
-
-    queryFn: () =>
-      fetchMovies(query, page),
-
+    queryFn: () => fetchMovies(query, page),
     enabled: query !== "",
+    placeholderData: keepPreviousData,
   });
 
-  const handleSearch = (
-    newQuery: string
-  ) => {
+  const handleSearch = (newQuery: string) => {
     setQuery(newQuery);
     setPage(1);
   };
 
   const movies = data?.results ?? [];
-  const totalPages =
-    data?.totalPages ?? 0;
+  const totalPages = data?.totalPages ?? 0;
 
-  if (
-    query &&
-    !isLoading &&
-    movies.length === 0
-  ) {
-    toast.error(
-      "No movies found for your request."
-    );
-  }
+  useEffect(() => {
+    if (query && !isLoading && !isFetching && movies.length === 0) {
+      toast.error("No movies found for your request.", {
+        id: "no-movies-found", // Запобігає появі кількох однакових тостів на екрані
+      });
+    }
+  }, [query, isLoading, isFetching, movies.length]);
 
   return (
     <>
@@ -74,6 +63,7 @@ export default function App() {
 
       <Toaster position="top-right" />
 
+      {/* Показуємо Loader лише під час першого завантаження (коли даних ще немає) */}
       {isLoading && <Loader />}
 
       {isError && <ErrorMessage />}
@@ -90,13 +80,9 @@ export default function App() {
           pageCount={totalPages}
           pageRangeDisplayed={5}
           marginPagesDisplayed={1}
-          onPageChange={({ selected }) =>
-            setPage(selected + 1)
-          }
+          onPageChange={({ selected }) => setPage(selected + 1)}
           forcePage={page - 1}
-          containerClassName={
-            css.pagination
-          }
+          containerClassName={css.pagination}
           activeClassName={css.active}
           nextLabel="→"
           previousLabel="←"
@@ -106,9 +92,7 @@ export default function App() {
       {selectedMovie && (
         <MovieModal
           movie={selectedMovie}
-          onClose={() =>
-            setSelectedMovie(null)
-          }
+          onClose={() => setSelectedMovie(null)}
         />
       )}
     </>
